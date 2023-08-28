@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ffdraftbuddy"
+version = "0.1.0"
+description = "Fantasy football draft tool to understand positional advantage and opportunity"
+authors = ["Alex Yang <ayang41@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+altair = "^5.0.1"
+pandas = "^2.0.3"
+numpy = "^1.25.2"
+streamlit = "^1.26.0"
+pytest = "^7.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
