@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import altair as alt
 import numpy as np
 import pandas as pd
@@ -8,7 +10,9 @@ POSITIONS = ["QB", "WR", "RB", "TE"]
 @st.cache_data()
 def load_data():
     df = (
-        pd.read_csv("staticdata/2023footballsheet.csv")
+        pd.read_csv(
+            Path(__file__).parent / "staticdata/2023footballsheet.csv"
+        )
         .assign(Available=True)
         .sort_values(["Rank", "Pts/week"], ascending=[True, False])
         .reset_index(drop=True)
