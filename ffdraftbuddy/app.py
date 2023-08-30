@@ -18,7 +18,9 @@ def parse_code(val):
 @st.cache_data
 def load_data():
     df = (
-        pd.read_csv("staticdata/2023fantasypointsprojections.csv")
+        pd.read_csv(
+            Path(__file__).parent / "staticdata/2023fantasypointsprojections.csv"
+        )
         .rename(columns={"Rank": "OverallRank"})
         .assign(Available=True)
     )
