@@ -6,7 +6,9 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-POSITIONS = ["QB", "WR", "RB", "TE"]
+import vonpp_functions
+
+POSITIONS = ["QB", "WR", "RB", "TE", "K", "DST"]
 PROJECTIONS_COL = "FantasyPts"
 
 def parse_code(val):
@@ -43,7 +45,7 @@ def visualize():
     df = st.session_state.df_modified[
         st.session_state.df_modified["Available"]
     ].copy()
-    df["VONP"] = df.groupby("Position")[PROJECTIONS_COL].transform(
+    df["Delta"] = df.groupby("Position")[PROJECTIONS_COL].transform(
         lambda vals: -1 * np.diff(vals, append=vals.values[-1])
     )
     
@@ -68,7 +70,7 @@ def visualize():
                 )
             ),
             color=alt.Color("Position:N"),
-            tooltip=["Name", "Rank", PROJECTIONS_COL, "VONP"],
+            tooltip=["Name", "Rank", PROJECTIONS_COL, "Delta"],
             opacity=alt.condition(selector_legend, alt.value(1), alt.value(0.2))
         )
         .add_params(selector_legend)
@@ -93,11 +95,8 @@ def summarize_positions():
     df = st.session_state.df_modified[
         st.session_state.df_modified["Available"]
     ].copy()
-    df["VONP"] = df.groupby("Position")[PROJECTIONS_COL].transform(
-        lambda vals: -1 * np.diff(vals, append=vals.values[-1])
-    )
     
-    sliders = [None] * 4
+    sliders = [None] * len(POSITIONS)
     for i, pos in enumerate(POSITIONS):
         position_df = df[df["Position"]==pos].drop(columns=["Position", "Available"])
 
@@ -110,11 +109,29 @@ def summarize_positions():
             st.dataframe(position_df.head(sliders[i]), use_container_width=True)
 
 def suggest_picks():
-    df = st.session_state.df_modified[
-        st.session_state.df_modified["Available"]
-    ].copy()
+    with st.expander("Draft Suggestions"):
+        n_teams = st.number_input("Number of teams", format="%i", step=1, value=10)
+        draft_strategy = st.radio("Lookahead style", ["Fixed", "Snake"])
+        look_ahead_selection = st.number_input(
+            "Lookahead interval (only used if lookahead style is fixed)", format="%i", 
+            step=1, value=10
+        )
+        superflex = st.toggle("Activate superflex", value=False)
+        run_suggestions = st.button("Run draft suggestions")
 
-
+        if run_suggestions:
+            if draft_strategy == "Snake":
+                look_ahead = "simulate"
+            else:
+                look_ahead = int(look_ahead_selection)
+            df = st.session_state.df_modified[
+                st.session_state.df_modified["Available"]
+            ].copy()
+            suggestions = vonpp_functions.run_ranker(
+                df, n_teams=n_teams, look_ahead_strategy=look_ahead,
+                superflex=superflex
+            ).drop(columns=["Available"])
+            st.dataframe(suggestions, use_container_width=True)
 
 st.data_editor(
     st.session_state.df_modified, 
@@ -129,3 +146,5 @@ reset_selections = st.button("Reset selections", on_click=reset_changes)
 visualize()
 
 summarize_positions()
+
+suggest_picks()
