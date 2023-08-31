@@ -6,7 +6,7 @@ import pandas as pd
 
 
 POSITIONS = ["QB", "WR", "RB", "TE", "K", "DST"]
-PROJECTION_COL = "FantasyPts"
+PROJECTION_COL = "FPTS" 
 
 
 class PlayerRanker:

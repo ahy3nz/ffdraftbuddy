@@ -9,36 +9,36 @@ import streamlit as st
 import vonpp_functions
 
 POSITIONS = ["QB", "WR", "RB", "TE", "K", "DST"]
-PROJECTIONS_COL = "FantasyPts"
-
-def parse_code(val):
-    match_pattern = r"([A-Z]*)([0-9]*)"
-    matched = re.match(match_pattern, val)
-    parsed = {"Position": matched.group(1), "Rank": int(matched.group(2))}
-    return pd.Series(parsed)
+PROJECTIONS_COL = "FPTS" 
 
 @st.cache_data
-def load_data():
-    df = (
-        pd.read_csv(
-            Path(__file__).parent / "staticdata/2023fantasypointsprojections.csv"
+def load_fantasypros():
+    all_df = []
+    for pos in POSITIONS:
+        df = (
+            pd.read_csv(
+                Path(__file__).parent / f"staticdata/FantasyPros_Fantasy_Football_Projections_{pos}.csv",
+                usecols=["Player", "Team", "FPTS"],
+                skiprows=[1]
+            )
+            .assign(Position=pos, Available=True)
+            .sort_values("FPTS", ascending=False)
+            .assign(Rank=lambda df_: df_["FPTS"].rank(ascending=False))
         )
-        .rename(columns={"Rank": "OverallRank"})
-        .assign(Available=True)
+        all_df.append(df)
+    return (
+        pd.concat(all_df)
+        .dropna(subset=["Player"])
+        .reset_index(drop=True)
+        .sort_values(["Rank", "FPTS"], ascending=[True, False])
+        [["Available", "Player", "Team", "Position", "Rank", "FPTS"]]
     )
-    parsed_codes = df["Code"].apply(parse_code)
-    df = (
-        df.merge(parsed_codes, left_index=True, right_index=True)
-        .drop(columns=["Code", "OverallRank"])
-        [lambda df_: df_["Position"].isin(POSITIONS)]
-    )
-    return df[["Available", "Name", "Team", "Position", "Rank", "FantasyPts"]]
 
 
 if 'df' not in st.session_state:
-    st.session_state.df = load_data()
+    st.session_state.df = load_fantasypros()
 if 'df_modified' not in st.session_state:
-    st.session_state.df_modified = load_data().copy()
+    st.session_state.df_modified = load_fantasypros().copy()
     
     
 def visualize():
@@ -70,7 +70,7 @@ def visualize():
                 )
             ),
             color=alt.Color("Position:N"),
-            tooltip=["Name", "Rank", PROJECTIONS_COL, "Delta"],
+            tooltip=["Player", "Rank", PROJECTIONS_COL, "Delta"],
             opacity=alt.condition(selector_legend, alt.value(1), alt.value(0.2))
         )
         .add_params(selector_legend)
@@ -135,7 +135,7 @@ def suggest_picks():
 
 st.data_editor(
     st.session_state.df_modified, 
-    disabled=["Value", "Team", "Name", PROJECTIONS_COL, "Rank", "Position"],
+    disabled=["Value", "Team", "Player", PROJECTIONS_COL, "Rank", "Position"],
     hide_index=True,
     on_change=apply_changes,
     key="changes",
