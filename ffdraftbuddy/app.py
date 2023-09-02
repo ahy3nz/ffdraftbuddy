@@ -29,8 +29,8 @@ def load_fantasypros():
     return (
         pd.concat(all_df)
         .dropna(subset=["Player"])
-        .reset_index(drop=True)
         .sort_values(["Rank", "FPTS"], ascending=[True, False])
+        .reset_index(drop=True)
         [["Available", "Player", "Team", "Position", "Rank", "FPTS"]]
     )
 
