@@ -11,7 +11,7 @@ altair = "^5.1.2"
 pandas = "^2.1.0"
 numpy = "^1.25.2"
 streamlit = "^1.27.2"
-pytest = "^7.4.2"
+pytest = "^7.4.3"
 
 
 [build-system]
