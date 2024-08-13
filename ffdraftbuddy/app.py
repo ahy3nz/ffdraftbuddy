@@ -60,7 +60,8 @@ def visualize():
             x=alt.X("Rank:Q").scale(
                 domain=(
                     df["Rank"].min() - 1, 
-                    df["Rank"].max() + 1
+                    # df["Rank"].max() + 1,
+                    50
                 )
             ),
             y=alt.Y(f"{PROJECTIONS_COL}:Q").scale(
@@ -71,7 +72,7 @@ def visualize():
             ),
             color=alt.Color("Position:N"),
             tooltip=["Player", "Rank", PROJECTIONS_COL, "Delta"],
-            opacity=alt.condition(selector_legend, alt.value(1), alt.value(0.2))
+            opacity=alt.condition(selector_legend, alt.value(1), alt.value(0.2)),
         )
         .add_params(selector_legend)
         .configure_point(size=50)
