@@ -6,18 +6,26 @@ import pandas as pd
 
 
 POSITIONS = ["QB", "WR", "RB", "TE", "K", "DST"]
+POSITIONS_FLEX = ["QB", "FLEX", "TE", "K", "DST"]
 PROJECTION_COL = "FPTS" 
 
 
 class PlayerRanker:
-    def __init__(self, df, n_teams=10, log=True, look_ahead_strategy="simulate", blur=1, superflex=False):
+    def __init__(
+        self, df, n_teams=10, log=True, look_ahead_strategy="simulate", blur=1, superflex=False,
+        use_flex=False
+    ):
         self.draft_ranking = [] # Store our ranking
         self.n_teams = n_teams
+        if use_flex:
+            self.positions = POSITIONS_FLEX
+        else:
+            self.positions = POSITIONS
 
         # For each position, create a queue of players
         # where the better players are at the top of the queue
         self.position_queue = dict()
-        for pos in POSITIONS:
+        for pos in self.positions:
             self.position_queue[pos] = list(
                 df[df["Position"]==pos]
                 .to_dict(orient="index")
@@ -71,7 +79,7 @@ class PlayerRanker:
             # Our player pool is a compilation of best availble players
             # and associated VONPPs
             player_pool = []
-            for pos in POSITIONS:
+            for pos in self.positions:
                 best_player_available = players_by_position.get_group(pos).head(1).iloc[0]
                 if best_player_available is not None:
                     # Modify our lookahead based on the position
@@ -115,7 +123,10 @@ class PlayerRanker:
             self.draft_ranking.append(to_draft)
             df = df.drop(index=[person_to_draft[0].name])
 
-def run_ranker(df, n_teams=10, log=False, look_ahead_strategy="simulate", blur=1, superflex=False):
+def run_ranker(
+    df, n_teams=10, log=False, look_ahead_strategy="simulate", 
+    blur=1, superflex=False, size=100, use_flex=False
+):
     # Ranking strategy by simulating a snake draft
     ranker = PlayerRanker(
         df, 
@@ -124,8 +135,9 @@ def run_ranker(df, n_teams=10, log=False, look_ahead_strategy="simulate", blur=1
         look_ahead_strategy=look_ahead_strategy, 
         blur=blur,
         superflex=superflex,
+        use_flex=use_flex
     )
-    ranker.compute_vonpp(df, size=30)
+    ranker.compute_vonpp(df, size=size)
     simulated_ranking = pd.DataFrame(ranker.draft_ranking).drop(columns=["Rerank"])
     return simulated_ranking
 
