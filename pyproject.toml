@@ -12,7 +12,7 @@ pandas = "^2.2.3"
 numpy = "^2.2.2"
 streamlit = "^1.41.1"
 pytest = "^8.3.4"
-jupyterlab = "^4.3.4"
+jupyterlab = "^4.3.5"
 poetry = "^2.0.1"
 
 
