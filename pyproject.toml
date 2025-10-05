@@ -13,7 +13,7 @@ numpy = "^2.2.6"
 streamlit = "^1.49.1"
 pytest = "^8.4.2"
 jupyterlab = "^4.4.7"
-poetry = "^2.1.4"
+poetry = "^2.2.1"
 lxml = "^6.0.1"
 
 
